@@ -1,3 +1,3 @@
 #!/bin/bash
-cd test_aws_streamlit/
+cd AWS_Streamlit_App/
 git pull
