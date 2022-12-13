@@ -17,7 +17,7 @@ def etl():
 
     path_base="/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/"\
         "2022_Spiced_Data_Science/Data_Science_Course/Working_Area/"\
-            "final_project/productive/postgres_data/daily/"
+            "final_project/productive/app/postgres_data/daily/"
 
     #Define dates
     date_from,date_to=get_dates()

@@ -9,7 +9,7 @@ def web_scrap():
     #Define dictionaries
     folder_pre="/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/"\
         "2022_Spiced_Data_Science/Data_Science_Course/Working_Area/final_project/"\
-            "productive/postgres_data/"
+            "productive/app/postgres_data/"
 
     #1. real generation
     REAL_GEN={'main_cat': 'Oberkategorie: Stromerzeugung',

@@ -1,33 +1,35 @@
 import datetime
 import pandas as pd
 import sqlalchemy as db
+from dotenv import load_dotenv
+import os
 
 def connect_to_postgres():
     '''this functions connects to a postgres server'''
-    
-    HOST = 'energy.czpisnsdrykp.us-east-1.rds.amazonaws.com' # local: 'localhost' 
+    load_dotenv()
+
+    HOST = os.getenv('HOST')#'energy.czpisnsdrykp.us-east-1.rds.amazonaws.com' # local: 'localhost' 
     # default psql port for localhost
-    PORT = '5432'
+    PORT = os.getenv('PORT')#'5432'
     # username for postgres (default 'postgres')
     USERNAME = 'postgres'
     # postgres password as environment variable
-    PASSWORD = 'elec_price_data' # local: GarlicBoosting
-    DB = 'Energy' #local: energy_db'
+    PASSWORD = os.getenv('PASSWORD')#'elec_price_data' # local: GarlicBoosting
+    DB = os.getenv('DB')#'Energy' #local: energy_db'
 
     #connection string for Linux
     cs_linux = f"postgresql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 
     engine = db.create_engine(cs_linux, echo=False)
-
+    #print(HOST,PORT,USERNAME,PASSWORD,DB)
     return engine
-
 
 def load_etl_to_postgres(engine):
     '''Functions loads a csv file to postgres and updates values'''
     #Fill new data df
     date_from=datetime.datetime.today().date()
     path_new_data='/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/2022_Spiced_Data_Science/'\
-                    'Data_Science_Course/Working_Area/final_project/productive/postgres_data/daily/all_merged_data/'
+                    'Data_Science_Course/Working_Area/final_project/productive/app/postgres_data/daily/all_merged_data/'
     file_name=path_new_data+date_from.strftime('%d_%m_%Y')+'_postgres_data.csv'
     new_data = pd.read_csv(file_name,index_col=0,infer_datetime_format=True,parse_dates=True)
     #new_data.rename(columns={'Biomasse[MWh]':'biomasse_mwh',
@@ -67,3 +69,6 @@ def update_sql(dict_sql,destin_column,engine,table):
             query = db.update(db_table).values(price_pred_sarimax = value)
         query = query.where(db_table.columns.datum == key)
         results = connection.execute(query)
+
+if __name__=='__main__':
+    connect_to_postgres()
