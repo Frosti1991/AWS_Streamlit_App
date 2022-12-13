@@ -1,0 +1,12 @@
+pandas
+datetime
+os
+numpy
+sqlalchemy
+streamlit
+base64
+glob
+time
+locale
+requests
+selenium
