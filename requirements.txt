@@ -10,3 +10,4 @@ time
 locale
 requests
 selenium
+python-dotenv
