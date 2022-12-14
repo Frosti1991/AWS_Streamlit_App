@@ -24,7 +24,7 @@ from selenium.webdriver.support.ui import Select
 import pandas as pd
 
 #user defined functions
-days_back=15
+days_back=5
 
 def get_dates():
     
