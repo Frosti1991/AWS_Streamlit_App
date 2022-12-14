@@ -20,6 +20,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
+from webdriver_manager.chrome import ChromeDriverManager 
 
 #dataframe
 import pandas as pd
@@ -47,7 +48,7 @@ def get_download_csv_smard(download, date_from, date_to):
     #options = Options()
     #options.add_argument('--headless')
     #options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver')
+    driver = webdriver.Chrome(ChromeDriverManager().install()) #automatically installs the latest version chromedriver!
     driver.get(url)
 
     #wait implicit to find unlocated elements, set for the life of webdriver object
