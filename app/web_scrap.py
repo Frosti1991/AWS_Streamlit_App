@@ -121,5 +121,6 @@ def web_scrap():
     #print(datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv')
 
 if __name__=='__main__':
-        import web_scrap_functions as wsf
-        wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
+        #import web_scrap_functions as wsf
+        #wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
+        web_scrap()
