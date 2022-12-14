@@ -46,7 +46,7 @@ def get_download_csv_smard(download, date_from, date_to):
     
     url="https://www.smard.de/home/downloadcenter/download-marktdaten/"
     options = Options()
-    options.add_argument('--headless')
+    #options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     driver = webdriver.Chrome(ChromeDriverManager().install(),options=options) #automatically installs the latest version chromedriver!
