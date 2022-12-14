@@ -2,8 +2,16 @@ import pandas as pd
 import warnings
 warnings.filterwarnings("ignore")
 import datetime
+import os
+from dotenv import load_dotenv
 
 #user defined ETL functions
+def get_env_var(key):
+    load_dotenv()
+    value = os.getenv(key) 
+    #print(value)
+    return value
+
 def change_column_name(df_in,column_dict):
     '''changes column names of an input df by a dictionary with new names'''
     df_out=df_in.rename(columns = column_dict)

@@ -61,7 +61,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
         begin_test_date = begin_test_date
         end_test_date = end_test_date 
 
-        path_datasets_folder = "/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/2022_Spiced_Data_Science/Data_Science_Course/Working_Area/final_project/productive/model/"
+        path_datasets_folder = mof.get_env_var('PATH_DATASETS_FOLDER')
         path_recalibration_folder = "model/experimental_files/"
         path_hyperparameter_folder = "model/experimental_files/"
 
@@ -90,8 +90,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
         begin_test_date = begin_test_date
         end_test_date = end_test_date 
 
-        path_datasets_folder = "/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/2022_Spiced_Data_Science/Data_Science_Course/"\
-            "Working_Area/final_project/productive/model/"
+        path_datasets_folder = mof.get_env_var('PATH_DATASETS_FOLDER')
         path_recalibration_folder = "model/experimental_files/"
         path_hyperparameter_folder = "model/experimental_files/"
 

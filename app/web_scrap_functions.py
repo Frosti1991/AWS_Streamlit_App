@@ -1,6 +1,7 @@
 #OS functions
 import glob
 import os
+from dotenv import load_dotenv
 
 #(german) time 
 import datetime
@@ -103,14 +104,20 @@ def get_download_csv_smard(download, date_from, date_to):
 
     driver.close()
 
+def get_env_var(key):
+    load_dotenv()
+    value = os.getenv(key) 
+    #print(value)
+    return value
+
 def rename_file(download):
     '''This function renames a file'''
-    path_download='/home/christoph/Downloads/'
+    path_download=get_env_var('PATH_DOWNLOAD')
     os.rename(path_download+'export.xlsx',path_download+download['file_prefix'])
 
 def move_file(download):
     '''This function moves all fitting files from old folder to new folder'''
-    path_download='/home/christoph/Downloads/'
+    path_download=get_env_var('PATH_DOWNLOAD')
     for file in glob.glob(path_download + download['file_prefix']):
         print(download['save_name'])
         #file_name=os.path.basename(file)
@@ -170,3 +177,6 @@ def concat_multiple_df(df_list):
     for df in df_list:
         df_concat=pd.concat([df_concat,df],axis=1)
     return df_concat
+
+if __name__=='__main__':
+    get_env_var('PATH_POSTGRES_DATA_DAILY')

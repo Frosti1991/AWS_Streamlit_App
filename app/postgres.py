@@ -2,34 +2,33 @@ import datetime
 import pandas as pd
 import sqlalchemy as db
 from dotenv import load_dotenv
-import os
+import etl_functions as etl
 
 def connect_to_postgres():
     '''this functions connects to a postgres server'''
     load_dotenv()
 
-    HOST = os.getenv('HOST')#'energy.czpisnsdrykp.us-east-1.rds.amazonaws.com' # local: 'localhost' 
+    HOST = etl.get_env_var('HOST') # local: 'localhost' 
     # default psql port for localhost
-    PORT = os.getenv('PORT')#'5432'
+    PORT = etl.get_env_var('PORT')
     # username for postgres (default 'postgres')
     USERNAME = 'postgres'
     # postgres password as environment variable
-    PASSWORD = os.getenv('PASSWORD')#'elec_price_data' # local: GarlicBoosting
-    DB = os.getenv('DB')#'Energy' #local: energy_db'
+    PASSWORD = etl.get_env_var('PASSWORD') # local: GarlicBoosting
+    DB = etl.get_env_var('DB') #local: energy_db'
 
     #connection string for Linux
     cs_linux = f"postgresql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 
     engine = db.create_engine(cs_linux, echo=False)
-    #print(HOST,PORT,USERNAME,PASSWORD,DB)
+    print(HOST,PORT,USERNAME,PASSWORD,DB)
     return engine
 
 def load_etl_to_postgres(engine):
     '''Functions loads a csv file to postgres and updates values'''
     #Fill new data df
     date_from=datetime.datetime.today().date()
-    path_new_data='/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/2022_Spiced_Data_Science/'\
-                    'Data_Science_Course/Working_Area/final_project/productive/app/postgres_data/daily/all_merged_data/'
+    path_new_data=etl.get_env_var('PATH_POSTGRES_DATA_MERGED')
     file_name=path_new_data+date_from.strftime('%d_%m_%Y')+'_postgres_data.csv'
     new_data = pd.read_csv(file_name,index_col=0,infer_datetime_format=True,parse_dates=True)
     #new_data.rename(columns={'Biomasse[MWh]':'biomasse_mwh',
@@ -71,4 +70,5 @@ def update_sql(dict_sql,destin_column,engine,table):
         results = connection.execute(query)
 
 if __name__=='__main__':
-    connect_to_postgres()
+    #connect_to_postgres()
+    etl.get_env_var('PATH_POSTGRES_DATA_MERGED')

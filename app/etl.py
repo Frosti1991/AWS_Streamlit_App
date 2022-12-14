@@ -15,9 +15,7 @@ def etl():
     #postgres
     import postgres 
 
-    path_base="/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/"\
-        "2022_Spiced_Data_Science/Data_Science_Course/Working_Area/"\
-            "final_project/productive/app/postgres_data/daily/"
+    path_base=etl.get_env_var('PATH_POSTGRES_DATA_DAILY')
 
     #Define dates
     date_from,date_to=get_dates()
@@ -203,3 +201,7 @@ def etl():
     postgres.load_etl_to_postgres(engine)
 
     ################ CONNECT AND LOAD TO POSTGRES - END ######################
+
+if __name__=='__main__':
+    import etl_functions as etl
+    etl.get_env_var('PATH_POSTGRES_DATA_DAILY')

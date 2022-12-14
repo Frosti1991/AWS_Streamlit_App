@@ -7,9 +7,7 @@ def web_scrap():
     # --------- SCRAPE SMARD.DE DATA -START- -----------------------
 
     #Define dictionaries
-    folder_pre="/home/christoph/OneDrive/Fortbildung_Weiterbildung_Arbeit/"\
-        "2022_Spiced_Data_Science/Data_Science_Course/Working_Area/final_project/"\
-            "productive/app/postgres_data/"
+    folder_pre=wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
 
     #1. real generation
     REAL_GEN={'main_cat': 'Oberkategorie: Stromerzeugung',
@@ -121,3 +119,7 @@ def web_scrap():
                         'postgres_data/daily/DA_Gas_Oil_Coal_CO2/'+datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv'
                         , sep=',', na_rep='NaN', index=True)
     #print(datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv')
+
+if __name__=='__main__':
+        import web_scrap_functions as wsf
+        wsf.get_env_var('PATH_POSTGRES_DATA_PRE')

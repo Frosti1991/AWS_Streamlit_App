@@ -13,7 +13,17 @@ from epftoolbox.data import read_data
 from epftoolbox.evaluation import MAE, sMAPE
 from epftoolbox.models import DNN
 
+#OS
+import os
+from dotenv import load_dotenv
+
 #User defined function
+def get_env_var(key):
+    load_dotenv()
+    value = os.getenv(key) 
+    #print(value)
+    return value
+
 def next_day_date(df_in):
     '''returns a timestamp which shows the next day after the last day of 
     a dataframe'''
