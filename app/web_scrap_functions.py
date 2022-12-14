@@ -45,10 +45,11 @@ def get_download_csv_smard(download, date_from, date_to):
     on the passed dictionary and dates'''
     
     url="https://www.smard.de/home/downloadcenter/download-marktdaten/"
-    #options = Options()
-    #options.add_argument('--headless')
-    #options.add_argument('--disable-gpu')
-    driver = webdriver.Chrome(ChromeDriverManager().install()) #automatically installs the latest version chromedriver!
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(ChromeDriverManager().install(),options=options) #automatically installs the latest version chromedriver!
     driver.get(url)
 
     #wait implicit to find unlocated elements, set for the life of webdriver object
