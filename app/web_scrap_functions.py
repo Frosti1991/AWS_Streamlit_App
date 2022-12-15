@@ -46,10 +46,20 @@ def get_download_csv_smard(download, date_from, date_to):
     
     url="https://www.smard.de/home/downloadcenter/download-marktdaten/"
     options = Options()
-    #options.add_argument('--headless')
+    if get_env_var('HEADLESS')=='yes': #just on AWS EC2
+        options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    
+    prefs = {
+    "profile.default_content_settings.popups": 0,
+    "download.default_directory": get_env_var('PATH_DOWNLOAD'),
+    "directory_upgrade": True
+    }
+    options.add_experimental_option("prefs", prefs)
+    #driver = WebDriverWrapper(download_location='/tmp')
     driver = webdriver.Chrome(ChromeDriverManager().install(),options=options) #automatically installs the latest version chromedriver!
+    #driver.enable_download_in_headless_chrome()
     driver.get(url)
 
     #wait implicit to find unlocated elements, set for the life of webdriver object
