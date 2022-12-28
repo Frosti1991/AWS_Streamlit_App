@@ -83,9 +83,9 @@ def concat_multiple_df(df_list):
         df_concat=pd.concat([df_concat,df],axis=1)
     return df_concat
 
-def extend_datetime_index(df_in,delta_start,delta_end,freq):
+def extend_datetime_index(df_in,date_from,date_to,freq):
     '''returns a extended df, extended by datetime index till tomorrow'''
-    new_dates=pd.date_range(start=datetime.datetime.today().date()-datetime.timedelta(days=delta_start), 
-                            end=datetime.datetime.today().date()+datetime.timedelta(days=delta_end), freq=freq)
+    new_dates=pd.date_range(start=date_from, 
+                            end=date_to, freq=freq)
     df_out =df_in.reindex(new_dates)
     return df_out

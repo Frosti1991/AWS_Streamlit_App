@@ -90,16 +90,25 @@ def web_scrap():
     # --------- SCRAPE SMARD.DE DATA -END- -----------------------
 
     # --------- SCRAPE Finanzen.net DATA - START - ---------------
-    gas_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf",'div.table-responsive>table.table',
-                                1,'td')
+    gas_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf/historisch"
+                               ,"//*[@id='sp_message_iframe_735274']"
+                               ,True
+                               ,'#historic-price-list > div > table'
+                               ,'td')
     df_gas=pd.DataFrame(data=gas_dict.values(),index=gas_dict.keys(),columns=['gas'])
 
-    oil_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis",'div.table-responsive>table.table',
-                                4,'td')
+    oil_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis/historisch"
+                               ,"//*[@id='sp_message_iframe_735274']"
+                               ,False
+                               ,'#historic-price-list > div > table'
+                               ,'td')
     df_oil=pd.DataFrame(data=oil_dict.values(),index=oil_dict.keys(),columns=['oil'])
 
-    coal_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis",'div.table-responsive>table.table',
-                                4,'td')
+    coal_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis/historisch"
+                                ,"//*[@id='sp_message_iframe_735274']"
+                                ,False
+                                ,'#historic-price-list > div > table'
+                                ,'td')
     df_coal=pd.DataFrame(data=coal_dict.values(),index=coal_dict.keys(),columns=['kohle'])
     # --------- SCRAPE Finanzen.net DATA - END - ---------------
 
@@ -121,6 +130,12 @@ def web_scrap():
     #print(datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv')
 
 if __name__=='__main__':
-        #import web_scrap_functions as wsf
+        import web_scrap_functions as wsf
         #wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
-        web_scrap()
+        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf",'#commodity_7716623_EUR > div.horizontal-scrolling > table',
+                                0,'td')
+        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis",'#commodity_244214_USD > div.horizontal-scrolling > table',
+                                0,'td')
+        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis",'#commodity_244196_USD > div.horizontal-scrolling > table',
+                                0,'td')
+        print("Success")

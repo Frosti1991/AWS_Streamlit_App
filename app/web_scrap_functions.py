@@ -21,12 +21,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import Select
 from webdriver_manager.chrome import ChromeDriverManager 
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 #dataframe
 import pandas as pd
 
 #user defined functions
-days_back=5
+days_back=31
 
 def get_dates():
     
@@ -46,27 +48,16 @@ def get_download_csv_smard(download, date_from, date_to):
     
     url="https://www.smard.de/home/downloadcenter/download-marktdaten/"
     options = Options()
-    if get_env_var('HEADLESS')=='yes': #just on AWS EC2
-        options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    
-    prefs = {
-    "profile.default_content_settings.popups": 0,
-    "download.default_directory": get_env_var('PATH_DOWNLOAD'),
-    "directory_upgrade": True
-    }
-    options.add_experimental_option("prefs", prefs)
-    #driver = WebDriverWrapper(download_location='/tmp')
-    driver = webdriver.Chrome(ChromeDriverManager().install(),options=options) #automatically installs the latest version chromedriver!
-    #driver.enable_download_in_headless_chrome()
-    driver.get(url)
+    #options.add_argument('--headless')
+    #options.add_argument('window-size=1920x1080')
+    #if get_env_var('HEADLESS')=='yes': #just on AWS EC2
 
+    driver = webdriver.Chrome(ChromeDriverManager().install(),options=options) #automatically installs the latest version chromedriver!
+    driver.get(url)
     #wait implicit to find unlocated elements, set for the life of webdriver object
     driver.implicitly_wait(5)
     
     #Select Oberkategorie
-    #print(download['main_cat'])
     select_main_cat = Select(driver.find_element(By.XPATH,"//*[@id='help-categories']/div/select"))
     select_main_cat.select_by_visible_text(download['main_cat'])
     
@@ -135,28 +126,69 @@ def move_file(download):
         #file_name=os.path.basename(file)
         os.replace(file, download['save_folder']+'/'+download['save_name'])
 
-def get_data_finanzen_net(url,selector_soup,index_soup,selector_table):
+# def get_data_finanzen_net(url,selector_soup,index_soup,selector_table):
     
+#     '''this function returns a date:price dictionary
+#     for the last x days out of the webscraping soup'''
+#     res=requests.get(url)
+#     soup=bs4.BeautifulSoup(res.text, 'lxml')
+#     table_total=soup.select(selector_soup)[index_soup]
+#     table_price_date=table_total.select(selector_table)
+#     counter=0
+#     date_price_dict={}
+#     for i in table_price_date:
+#         if i.text!='-':  #not empty
+#             try:
+#                 date=datetime.datetime.strptime(i.text,'%d.%m.%Y')
+#                 if counter>=days_back:
+#                     break
+#                 date_price_dict[date]=None #set key
+#                 counter+=1
+#             except ValueError:   #is settlement price
+#                 date_price_dict[date]=float(i.text.replace(",","."))  #set price to date as int
+#     return date_price_dict
+
+def get_data_finanzen_net(url, iframe_id,btn_click, selector_table,selector_data):
     '''this function returns a date:price dictionary
-    for the last x days out of the webscraping soup'''
-    res=requests.get(url)
-    soup=bs4.BeautifulSoup(res.text, 'lxml')
-    table_total=soup.select(selector_soup)[index_soup]
-    table_price_date=table_total.select(selector_table)
+    for the last x days out of the webscraping soup using selenium and bs4'''
+    #Selenium - Part
+    driver = webdriver.Chrome(executable_path='/usr/bin/chromedriver') #automatically installs the latest version chromedriver!
+    driver.get(url)
+    driver.implicitly_wait(5)
+    iframe=driver.find_element(By.XPATH,iframe_id)
+    driver.switch_to.frame(iframe)
+    btn_cookie_accept=driver.find_element(By.XPATH,"//*[@id='notice']/div[3]/div[2]/button")
+    btn_cookie_accept.click()
+    btn_hist_course=driver.find_element(By.XPATH,"//*[@id='request-historic-price']")
+    driver.implicitly_wait(5)
+    if btn_click:
+        btn_hist_course.click()
+    time.sleep(5)
+    
+    #Beatiful Soup - Part
+    html = driver.page_source
+    soup = bs4.BeautifulSoup(html, "lxml")
+    table_total=soup.select(selector_table)[0]
+    table_price_date=table_total.select(selector_data)
     counter=0
     date_price_dict={}
     for i in table_price_date:
-        if i.text!='-':  #not empty
+        search=[",","."]    
+        if any(x in i.text for x in search):  #not empty
             try:
-                date=datetime.datetime.strptime(i.text,'%d.%m.%Y')
-                if counter>=days_back:
+                date=i.text.replace("\t","")
+                date=date.replace("\n","")
+                date_set=datetime.datetime.strptime(date,'%d.%m.%Y')
+                if counter>=100:
                     break
-                date_price_dict[date]=None #set key
+                date_price_dict[date_set]=None #set key
                 counter+=1
             except ValueError:   #is settlement price
-                date_price_dict[date]=float(i.text.replace(",","."))  #set price to date as int
+                price=i.text.replace("\t","")
+                price=price.replace("\n","")
+                price=float(price.replace(",","."))
+                date_price_dict[date_set]=price
     return date_price_dict
-
 
 def get_data_boerse_de(url,selector_soup,index_soup,selector_table):
     '''this function returns a date:price dictionary

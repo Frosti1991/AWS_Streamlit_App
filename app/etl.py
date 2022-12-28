@@ -165,8 +165,10 @@ def etl():
         DA_gas_coc_date_index.index=pd.to_datetime(DA_gas_coc_date_index.index)
         DA_gas_coc_60=etl.resample(DA_gas_coc_date_index, '60min','ffill')
         DA_gas_coc_shift=etl.shift_6am(DA_gas_coc_60,'gas_6am','gas',6)
-        DA_gas_coc_extend=etl.extend_datetime_index(DA_gas_coc_shift,5,2,'1h')
+        print(DA_gas_coc_shift)
+        DA_gas_coc_extend=etl.extend_datetime_index(DA_gas_coc_shift,date_from,date_to,'1h')
         DA_gas_coc_inter=etl.interpolate_nans(DA_gas_coc_extend)
+        print(DA_gas_coc_extend)
         df_DA_gas_coc=DA_gas_coc_inter[date_from:date_to]
         file_list.append(file_gas_coc)
     else:
@@ -180,18 +182,18 @@ def etl():
     #COncat
     df_list=[df_DA_elec,df_real_gen,df_real_con,df_forec_gen,df_forec_con,df_DA_gas_coc]
     df_all=etl.concat_multiple_df(df_list)
-    #print(df_all['2022-11-22':'2022-11-23'])
+    #print(df_all)
     pd.DataFrame.to_csv(df_all, path_base+'all_merged_data/'+date_suffix+'_postgres_data.csv'
-    , sep=',', na_rep='NaN', index=True,)
+    , sep=',', na_rep='NaN', index=True)
 
     #----------- Concatenate all df's - END----------------
 
     #----------- Move existing files to archive - START----------------
     
-    for file in file_list:
-        folder=os.path.dirname(file)
-        name=os.path.basename(file)
-        os.replace(file, folder+'/archiv/'+name)
+    # for file in file_list:
+    #     folder=os.path.dirname(file)
+    #     name=os.path.basename(file)
+    #     os.replace(file, folder+'/archiv/'+name)
     #----------- Move files to archive - END ----------------
 
     ################ EXTRACT AND TRANSFORM - END ######################
@@ -203,5 +205,6 @@ def etl():
     ################ CONNECT AND LOAD TO POSTGRES - END ######################
 
 if __name__=='__main__':
-    import etl_functions as etl
-    etl.get_env_var('PATH_POSTGRES_DATA_DAILY')
+    #import etl_functions as etl
+    #etl.get_env_var('PATH_POSTGRES_DATA_DAILY')
+    etl()
