@@ -190,10 +190,10 @@ def etl():
 
     #----------- Move existing files to archive - START----------------
     
-    # for file in file_list:
-    #     folder=os.path.dirname(file)
-    #     name=os.path.basename(file)
-    #     os.replace(file, folder+'/archiv/'+name)
+    for file in file_list:
+        folder=os.path.dirname(file)
+        name=os.path.basename(file)
+        os.replace(file, folder+'/archiv/'+name)
     #----------- Move files to archive - END ----------------
 
     ################ EXTRACT AND TRANSFORM - END ######################
