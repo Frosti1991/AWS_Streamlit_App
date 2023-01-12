@@ -25,7 +25,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
     #--------------- DEFINE START AND END DATE - END - -------------------------
 
     # ---------------CONNECT TO POSTGRES - START --------------------
-    engine = engine=postgres.connect_to_postgres()
+    engine=postgres.connect_to_postgres()
     # ---------------CONNECT TO POSTGRES - END --------------------
 
     #---------------- SQL QUERY FROM START TO END AS DF - START --------------

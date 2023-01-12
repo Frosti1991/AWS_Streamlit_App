@@ -97,12 +97,16 @@ def web_scrap():
                                ,'td')
     df_gas=pd.DataFrame(data=gas_dict.values(),index=gas_dict.keys(),columns=['gas'])
 
+    time.sleep(2)    
+
     oil_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis/historisch"
                                ,"//*[@id='sp_message_iframe_735274']"
                                ,False
                                ,'#historic-price-list > div > table'
                                ,'td')
     df_oil=pd.DataFrame(data=oil_dict.values(),index=oil_dict.keys(),columns=['oil'])
+    
+    time.sleep(2)
 
     coal_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis/historisch"
                                 ,"//*[@id='sp_message_iframe_735274']"
@@ -131,11 +135,31 @@ def web_scrap():
 
 if __name__=='__main__':
         import web_scrap_functions as wsf
+        import pandas as pd
         #wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
-        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf",'#commodity_7716623_EUR > div.horizontal-scrolling > table',
-                                0,'td')
-        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis",'#commodity_244214_USD > div.horizontal-scrolling > table',
-                                0,'td')
-        wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis",'#commodity_244196_USD > div.horizontal-scrolling > table',
-                                0,'td')
+        df_gas=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf/historisch"
+                               ,"//*[@id='sp_message_iframe_735274']"
+                               ,True
+                               ,'#historic-price-list > div > table'
+                               ,'td')
+        df_oil=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis/historisch"
+                               ,"//*[@id='sp_message_iframe_735274']"
+                               ,False
+                               ,'#historic-price-list > div > table'
+                               ,'td')
+        df_coal=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis/historisch"
+                                ,"//*[@id='sp_message_iframe_735274']"
+                                ,False
+                                ,'#historic-price-list > div > table'
+                                ,'td')
+        df_co2=wsf.get_data_boerse_de("https://www.boerse.de/historische-kurse/Co2-Emissionsrechtepreis/XC000A0C4KJ2",
+                                'div.histKurseDay>table.tablesorter',
+                                0,
+                                'td')
+           #Merge df's and save
+        df_list=[df_gas,df_oil,df_coal,df_co2]
+        df_gas_coc_price=wsf.concat_multiple_df(df_list)
+        pd.DataFrame.to_csv(df_gas_coc_price, 
+                        'postgres_data/daily/DA_Gas_Oil_Coal_CO2/'+datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv'
+                        , sep=',', na_rep='NaN', index=True)
         print("Success")
