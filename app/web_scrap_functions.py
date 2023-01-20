@@ -28,7 +28,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 
 #user defined functions
-days_back=31
+days_back=10
 
 def get_dates():
     
