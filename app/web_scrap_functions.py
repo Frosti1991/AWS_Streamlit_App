@@ -28,7 +28,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 
 #user defined functions
-days_back=10
+days_back=15
 
 def get_dates():
     
@@ -203,7 +203,7 @@ def get_data_boerse_de(url,selector_soup,index_soup,selector_table):
     for i in table_price_data:
         try:
             date=datetime.datetime.strptime(i.text,'%d.%m.%Y') #check if entry is a date
-            if counter>=days_back: #get just the 5 last days
+            if counter>=days_back: #get just the x last days
                 break        
             date_price_dict[date]=None #set key
             counter+=1

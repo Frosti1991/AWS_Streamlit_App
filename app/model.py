@@ -26,7 +26,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
 
     # ---------------CONNECT TO POSTGRES - START --------------------
     engine=postgres.connect_to_postgres()
-    # ---------------CONNECT TO POSTGRES - END --------------------
+    #a ---------------CONNECT TO POSTGRES - END --------------------
 
     #---------------- SQL QUERY FROM START TO END AS DF - START --------------
     query = "SELECT * FROM elec_price_data WHERE datum between ('" +data_start+ "') and ('" +data_end+ "');"

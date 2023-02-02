@@ -136,30 +136,39 @@ def web_scrap():
 if __name__=='__main__':
         import web_scrap_functions as wsf
         import pandas as pd
+        from datetime import date
         #wsf.get_env_var('PATH_POSTGRES_DATA_PRE')
-        df_gas=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf/historisch"
+        gas_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/erdgas-preis-ttf/historisch"
                                ,"//*[@id='sp_message_iframe_735274']"
                                ,True
                                ,'#historic-price-list > div > table'
                                ,'td')
-        df_oil=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis/historisch"
+        df_gas=pd.DataFrame(data=gas_dict.values(),index=gas_dict.keys(),columns=['gas'])
+        print(df_gas)
+        oil_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/oelpreis/historisch"
                                ,"//*[@id='sp_message_iframe_735274']"
                                ,False
                                ,'#historic-price-list > div > table'
                                ,'td')
-        df_coal=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis/historisch"
+        df_oil=pd.DataFrame(data=oil_dict.values(),index=oil_dict.keys(),columns=['oil'])
+        print(df_oil)
+        coal_dict=wsf.get_data_finanzen_net("https://www.finanzen.net/rohstoffe/kohlepreis/historisch"
                                 ,"//*[@id='sp_message_iframe_735274']"
                                 ,False
                                 ,'#historic-price-list > div > table'
                                 ,'td')
-        df_co2=wsf.get_data_boerse_de("https://www.boerse.de/historische-kurse/Co2-Emissionsrechtepreis/XC000A0C4KJ2",
+        df_coal=pd.DataFrame(data=coal_dict.values(),index=coal_dict.keys(),columns=['kohle'])
+        print(df_coal)
+        co2_dict=wsf.get_data_boerse_de("https://www.boerse.de/historische-kurse/Co2-Emissionsrechtepreis/XC000A0C4KJ2",
                                 'div.histKurseDay>table.tablesorter',
                                 0,
                                 'td')
+        df_co2=pd.DataFrame(data=co2_dict.values(),index=co2_dict.keys(),columns=['co2'])
+        print(df_co2)
            #Merge df's and save
         df_list=[df_gas,df_oil,df_coal,df_co2]
         df_gas_coc_price=wsf.concat_multiple_df(df_list)
         pd.DataFrame.to_csv(df_gas_coc_price, 
-                        'postgres_data/daily/DA_Gas_Oil_Coal_CO2/'+datetime.datetime.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv'
+                        'postgres_data/daily/DA_Gas_Oil_Coal_CO2/'+date.today().strftime('%d_%m_%Y')+'_gas_coc_price.csv'
                         , sep=',', na_rep='NaN', index=True)
         print("Success")
