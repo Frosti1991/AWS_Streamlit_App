@@ -5,11 +5,10 @@ def run_model(chose_model,begin_test_date,end_test_date):
     # DNN _all--> HyperOpt on all FEatures
     # DNN's needs to be recalibrated before predicting
 
-    import datetime
+    from datetime import datetime, timedelta
     import numpy as np
     import model_functions as mof
     import pandas as pd
-    from sklearn.preprocessing import StandardScaler
     from statsmodels.tsa.statespace.sarimax import SARIMAX
     import pickle
     import postgres
@@ -17,34 +16,34 @@ def run_model(chose_model,begin_test_date,end_test_date):
 
     #################LOAD DATA FROM POSTGRES - START - ####################
 
-    #--------------- DEFINE START AND END DATE - START - -------------------------
-    #2 years backwards
-    data_start=(datetime.datetime.today().date()-datetime.timedelta(days=2*364)).strftime('%Y-%m-%d')
-    #2 days ahead
-    data_end=(datetime.datetime.today().date()+datetime.timedelta(days=2)).strftime('%Y-%m-%d')
-    #--------------- DEFINE START AND END DATE - END - -------------------------
+    # #--------------- DEFINE START AND END DATE - START - -------------------------
+    # #2 years backwards
+    # data_start=(datetime.datetime.today().date()-datetime.timedelta(days=2*364)).strftime('%Y-%m-%d')
+    # #2 days ahead
+    # data_end=(datetime.datetime.today().date()+datetime.timedelta(days=2)).strftime('%Y-%m-%d')
+    # #--------------- DEFINE START AND END DATE - END - -------------------------
 
-    # ---------------CONNECT TO POSTGRES - START --------------------
-    engine=postgres.connect_to_postgres()
-    #a ---------------CONNECT TO POSTGRES - END --------------------
+    # # ---------------CONNECT TO POSTGRES - START --------------------
+    # engine=postgres.connect_to_postgres()
+    # #a ---------------CONNECT TO POSTGRES - END --------------------
 
-    #---------------- SQL QUERY FROM START TO END AS DF - START --------------
-    query = "SELECT * FROM elec_price_data WHERE datum between ('" +data_start+ "') and ('" +data_end+ "');"
-    df_all = postgres.query_df_by_date(query,engine,"datum")
-    #ignore last value and predict_columns
-    df_all=df_all#[:-1]
-    df_all=df_all.drop(['price_pred_sarimax','price_pred_dnn'],axis=1)
-    #---------------- SQL QUERY FROM START TO END AS DF - END --------------
-    #################LOAD DATA FROM POSTGRES - END - ####################
+    # #---------------- SQL QUERY FROM START TO END AS DF - START --------------
+    # query = "SELECT * FROM elec_price_data WHERE datum between ('" +data_start+ "') and ('" +data_end+ "');"
+    # df_all = postgres.query_df_by_date(query,engine,"datum")
+    # #ignore last value and predict_columns
+    # df_all=df_all#[:-1]
+    # df_all=df_all.drop(['price_pred_sarimax','price_pred_dnn'],axis=1)
+    # #---------------- SQL QUERY FROM START TO END AS DF - END --------------
+    # #################LOAD DATA FROM POSTGRES - END - ####################
 
-    #################PREDICT PRICES - START - ####################
+    # #################PREDICT PRICES - START - ####################
 
-    #needs to be an user input from streamlit!
-    #begin_test_date = "22/11/2022 00:00"
-    #end_test_date = "22/11/2022 23:00"
+    # #needs to be an user input from streamlit!
+    # #begin_test_date = "22/11/2022 00:00"
+    # #end_test_date = "22/11/2022 23:00"
 
-    #Set Y_test
-    Y_test=df_all[begin_test_date:end_test_date]['price_real']
+    # #Set Y_test
+    # Y_test=df_all[begin_test_date:end_test_date]['price_real']
 
     if chose_model=="DNN_all":
 
@@ -100,28 +99,54 @@ def run_model(chose_model,begin_test_date,end_test_date):
         path_hyperparameter_folder)
 
     elif chose_model=="sarimax":
-        print(begin_test_date, end_test_date)
-        sx2 = pickle.load(open('model/sx2_with_sc.pkl', 'rb'))
-        sc=StandardScaler()
-        X_train_sc_arr2=sc.fit_transform(df_all[['photovoltaik_mwh_real','wind_sum_mwh_real']])
-        X_train_sc_2 =pd.DataFrame(X_train_sc_arr2, columns =['photovoltaik_mwh_real','wind_sum_mwh_real'],index=df_all.index)
-        Yp= sx2.predict(n_periods=Y_test.shape[0],X=X_train_sc_2[begin_test_date:end_test_date])
+        #Load latest model
+        sarimax_usual = pickle.load(open('usual_sarimax_high_corr_sc.pkl', 'rb'))
+        #Define relevant dates
+        model_last_date=sarimax_usual.predict().tail(1).index[0]
+        model_next_start=model_last_date+timedelta(hours=1)
+
+        #start is user input in app
+        forecast_start=datetime.strptime(begin_test_date,'%Y-%m-%d %H:%M')
+        forecast_end=datetime.strptime(end_test_date,'%Y-%m-%d %H:%M')
+
+        #train_period (rolling time windows 6 months before last model date)
+        end_train=model_last_date
+        start_train=end_train-timedelta(days=30*6)
+
+        #test period
+        end_test=forecast_end
+        if model_next_start>=forecast_start:
+            start_test=forecast_start
+        else:
+            start_test=model_next_start
+        
+        #Load data
+        engine=postgres.connect_to_postgres()
+        data_start=datetime(start_train.year,start_train.month,start_train.day,start_train.hour).strftime('%Y-%m-%d %H:00')
+        print(data_start)
+        data_end=datetime(end_test.year,end_test.month,end_test.day,end_test.hour).strftime('%Y-%m-%d %H:00')
+        print(data_end)
+        query = "SELECT * FROM elec_price_data WHERE datum between ('" +data_start+ "') and ('" +data_end+ "');"
+        df=postgres.query_df_by_date(query,engine,"datum")
+
+        X_train_sc, y_train, X_test_sc, y_test=mof.sc_train_test_data(df,start_train,end_train,start_test,end_test)
+
+        #Forecast Process
+        if model_next_start>=forecast_start:
+            print("In-Sample Forecast")
+            forecast=sarimax_usual.predict(exog=X_test_sc.loc[start_test:end_test],start=start_test,end=end_test)
+        
+        else:
+            print("Out-of-Sample Forecast")
+            #2. use appended-forecast method (return updated model and forecast series)
+            forecast,updated_sarimax=mof.appended_forecast(sarimax_usual,start_test,end_test)
+      
+            #3. pickle updated model
+            name='usual_sarimax_high_corr_sc.pkl'
+            pickle.dump(updated_sarimax, open(path+name,'wb'))
 
         ################# PREDICT PRICES - END - ####################
 
-    # import matplotlib.dates as md
-    # import matplotlib.pyplot as plt
-    # # filter df and plot ticker on the new subplot axis
-    # fig, ax = plt.subplots(figsize=(8,6))
-    # plt.plot(Y_test.index, Y_test, label = "Price_Test")
-    # if chose_model=='sarimax':
-    #     plt.plot(Y_test.index, Yp, label = "Price_Prediction")
-    # else:
-    #     plt.plot(Y_test.index, Yp.transpose(), label = "Price_Prediction")
-    # plt.legend()
-    # plt.title(f'DayAhead Price {begin_test_date}')
-    # ax.xaxis.set_major_formatter(md.DateFormatter('%H:%M:%S'))
-    # plt.show()
 
     #################### UPDATE Yp/sx2_forecast TO POSTGRES - START - ########
     if chose_model=="sarimax":
@@ -130,8 +155,8 @@ def run_model(chose_model,begin_test_date,end_test_date):
         sql_column="price_pred_dnn"
         Yp=Yp.flatten()
 
-    date_array=np.array(Y_test.index.to_pydatetime(), dtype=str)
-    dict_sql=mof.dict_from_arrays(date_array,Yp)
+    date_array=np.array(y_test.index.to_pydatetime(), dtype=str)
+    dict_sql=mof.dict_from_arrays(date_array,forecast)
 
     postgres.update_sql(dict_sql,sql_column,engine,"elec_price_data")
 
