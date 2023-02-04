@@ -205,7 +205,7 @@ def etl():
     ################ CONNECT AND LOAD TO POSTGRES - END ######################
 
 if __name__=='__main__':
-    #import etl_functions as etl
-    #etl.get_env_var('PATH_POSTGRES_DATA_DAILY')
-    etl()
+    import etl_functions as etl
+    etl.get_env_var('PASSWORD')
+    #etl()
     print("Success")

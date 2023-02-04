@@ -9,7 +9,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
     import numpy as np
     import model_functions as mof
     import pandas as pd
-    from statsmodels.tsa.statespace.sarimax import SARIMAX
+    #from statsmodels.tsa.statespace.sarimax import SARIMAX
     import pickle
     import postgres
 
@@ -100,9 +100,11 @@ def run_model(chose_model,begin_test_date,end_test_date):
 
     elif chose_model=="sarimax":
         #Load latest model
-        sarimax_usual = pickle.load(open('usual_sarimax_high_corr_sc.pkl', 'rb'))
+        sarimax_usual=pickle.load(open('model/usual_sarimax_high_corr_sc.pkl','rb'))
+        print("model loading success")
         #Define relevant dates
         model_last_date=sarimax_usual.predict().tail(1).index[0]
+        print(f'model last date:{model_last_date}')
         model_next_start=model_last_date+timedelta(hours=1)
 
         #start is user input in app
@@ -128,6 +130,7 @@ def run_model(chose_model,begin_test_date,end_test_date):
         print(data_end)
         query = "SELECT * FROM elec_price_data WHERE datum between ('" +data_start+ "') and ('" +data_end+ "');"
         df=postgres.query_df_by_date(query,engine,"datum")
+        print('postgres data successfully loaded')
 
         X_train_sc, y_train, X_test_sc, y_test=mof.sc_train_test_data(df,start_train,end_train,start_test,end_test)
 
@@ -139,11 +142,11 @@ def run_model(chose_model,begin_test_date,end_test_date):
         else:
             print("Out-of-Sample Forecast")
             #2. use appended-forecast method (return updated model and forecast series)
-            forecast,updated_sarimax=mof.appended_forecast(sarimax_usual,start_test,end_test)
-      
+            forecast,updated_sarimax=mof.appended_forecast(sarimax_usual,start_test,end_test,X_test_sc,y_test)
+            print("Out of sample forecast successfull")
             #3. pickle updated model
             name='usual_sarimax_high_corr_sc.pkl'
-            pickle.dump(updated_sarimax, open(path+name,'wb'))
+            pickle.dump(updated_sarimax, open(name,'wb'))
 
         ################# PREDICT PRICES - END - ####################
 
@@ -163,3 +166,8 @@ def run_model(chose_model,begin_test_date,end_test_date):
     print("SQL successfully updated!")
 
     #################### UPDATE Yp/sx2_forecast TO POSTGRES - END - ########
+
+
+if __name__=='__main__':
+    run_model("sarimax",'2023-01-27 00:00','2023-01-27 23:00')
+    print("Success")

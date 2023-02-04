@@ -21,7 +21,7 @@ def connect_to_postgres():
     cs_linux = f"postgresql://{USERNAME}:{PASSWORD}@{HOST}:{PORT}/{DB}"
 
     engine = db.create_engine(cs_linux, echo=False)
-    print(HOST,PORT,USERNAME,PASSWORD,DB)
+    #print(HOST,PORT,USERNAME,PASSWORD,DB)
     return engine
 
 def load_etl_to_postgres(engine):
